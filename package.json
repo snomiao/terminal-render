@@ -7,7 +7,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "build": "tsc",
-    "dev": "ts-node index.ts"
+    "dev": "ts-node index.ts",
+    "prepare": "husky"
   },
   "keywords": [
     "terminal",
@@ -19,12 +20,14 @@
   "license": "MIT",
   "devDependencies": {
     "@types/ansi-escapes": "^3.0.1",
+    "@types/bun": "latest",
     "@types/node": "^20.6.0",
     "ansi-escapes": "^7.0.0",
+    "husky": "^9.1.7",
+    "semantic-release": "^24.2.7",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
-    "vitest": "^1.0.0",
-    "@types/bun": "latest"
+    "vitest": "^1.0.0"
   },
   "dependencies": {},
   "private": true
