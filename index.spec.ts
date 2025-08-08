@@ -135,7 +135,7 @@ describe('TerminalTextRender', () => {
             renderer.write('Original text\nSecond line');
             renderer.write(ansiEscapes.cursorTo(5, 0));
             renderer.write('NEW');
-            expect(renderer.render()).toBe('OrigiNEWt\nSecond line');
+            expect(renderer.render()).toBe('OrigiNEW text\nSecond line');
         });
 
         test('should handle cursorMove relative positioning', () => {
