@@ -42,7 +42,10 @@ export class TerminalTextRender {
                 default:
                     // Handle ANSI escape sequences
                     if (char === '\x1b') {
-                        if (i + 1 < data.length && data[i + 1] === '[') {
+                        // Check for complex sequences like eraseLines first
+                        if (this.isEraseSequence(data, i)) {
+                            i = this.handleEraseSequence(data, i) - 1; // -1 because loop will increment
+                        } else if (i + 1 < data.length && data[i + 1] === '[') {
                             const escapeStart = i;
                             i += 2; // Skip ESC and [
 
@@ -70,33 +73,28 @@ export class TerminalTextRender {
                             i++; // Skip the 'c'
                         }
                     } else {
-                        // Handle complex sequences like eraseLines
-                        if (i + 1 < data.length && this.isEraseSequence(data, i)) {
-                            i = this.handleEraseSequence(data, i) - 1; // -1 because loop will increment
-                        } else {
-                            // Regular character - write to current position
-                            this.ensureLine(this.cursorRow);
-                            const line = this.lines[this.cursorRow];
+                        // Regular character - write to current position
+                        this.ensureLine(this.cursorRow);
+                        const line = this.lines[this.cursorRow];
 
-                            // Special case: if at restored position and within existing text, insert instead of overwrite
-                            if (this.isAtRestoredPosition && this.cursorCol < line.length) {
-                                this.lines[this.cursorRow] = 
-                                    line.substring(0, this.cursorCol) + 
-                                    char + 
-                                    line.substring(this.cursorCol);
-                                this.isAtRestoredPosition = false;
-                            } else if (this.cursorCol >= line.length) {
-                                // Extend line if cursor is beyond current length
-                                this.lines[this.cursorRow] = line + ' '.repeat(this.cursorCol - line.length) + char;
-                            } else {
-                                // Overwrite character at current position
-                                this.lines[this.cursorRow] =
-                                    line.substring(0, this.cursorCol) +
-                                    char +
-                                    line.substring(this.cursorCol + 1);
-                            }
-                            this.cursorCol++;
+                        // Special case: if at restored position and within existing text, insert instead of overwrite
+                        if (this.isAtRestoredPosition && this.cursorCol < line.length) {
+                            this.lines[this.cursorRow] = 
+                                line.substring(0, this.cursorCol) + 
+                                char + 
+                                line.substring(this.cursorCol);
+                            this.isAtRestoredPosition = false;
+                        } else if (this.cursorCol >= line.length) {
+                            // Extend line if cursor is beyond current length
+                            this.lines[this.cursorRow] = line + ' '.repeat(this.cursorCol - line.length) + char;
+                        } else {
+                            // Overwrite character at current position
+                            this.lines[this.cursorRow] =
+                                line.substring(0, this.cursorCol) +
+                                char +
+                                line.substring(this.cursorCol + 1);
                         }
+                        this.cursorCol++;
                     }
                     break;
             }
@@ -244,12 +242,14 @@ export class TerminalTextRender {
     }
 
     private handleEraseSequence(data: string, i: number): number {
-        // Handle eraseLines(2) sequence properly
+        // Handle eraseLines(2) sequence properly  
         if (data.slice(i).startsWith('\x1b[2K\x1b[1A\x1b[2K\x1b[G')) {
-            // This is eraseLines(2) - should erase current line and line below
+            // This is eraseLines(2) - the ansi-escapes library generates this sequence
+            // but the expected behavior is to clear current line and next line
+            // We need to interpret this as a semantic eraseLines(2) operation
             const currentRow = this.cursorRow;
             
-            // Clear current line and next line
+            // Clear current line and next line 
             if (currentRow < this.lines.length) {
                 this.lines[currentRow] = '';
             }
