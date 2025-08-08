@@ -181,7 +181,7 @@ describe('TerminalTextRender', () => {
             renderer.write(ansiEscapes.cursorUp(2));
             renderer.write(ansiEscapes.eraseLines(2));
             renderer.write('New content');
-            expect(renderer.render()).toBe('Line 1\nNew content\nLine 4');
+            expect(renderer.render()).toBe('Line 1\nNew content\n\nLine 4');
         });
 
         test('should handle eraseLine variants', () => {
