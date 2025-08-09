@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Terminal text renderer that handles ANSI escape sequences and control characters",
   "main": "index.ts",
+  "type": "module",
   "exports": {
     "import": "./dist/index.js",
     "types": "./index.ts"
   },
   "scripts": {
-    "test": "vitest --run && tsc",
-    "test:watch": "vitest",
+    "test": "bun test && tsc",
+    "test:watch": "bun test --watch",
     "build": "bun run build index.ts cli.ts --outdir=dist",
     "dev": "bun index.ts",
     "lint": "eslint .",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@types/ansi-escapes": "^3.0.1",
     "@types/bun": "latest",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.6.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
