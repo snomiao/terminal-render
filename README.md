@@ -112,6 +112,62 @@ bun run format
 - Testing terminal applications by capturing their output
 - Building terminal emulators or terminal-like interfaces
 
+## Live Demos
+
+### Interactive CLI Demo
+
+Try the CLI tool with the included demo files:
+
+```bash
+# Process a progress bar demo
+bun cli.ts demo-progress.log
+
+# Process complex terminal output with status updates
+bun cli.ts demo-complex.log
+
+# Process ANSI cursor movement sequences
+bun cli.ts demo-ansi.log
+
+# Use with any file containing terminal output
+bun cli.ts your-log-file.txt
+```
+
+### Generate Demo Output
+
+Create your own demo files by running terminal commands and redirecting output:
+
+```bash
+# Capture npm install output
+npm install > demo-npm.log 2>&1
+bun cli.ts demo-npm.log
+
+# Capture build process output
+bun run build > demo-build.log 2>&1
+bun cli.ts demo-build.log
+
+# Capture test output with progress
+bun test > demo-test.log 2>&1
+bun cli.ts demo-test.log
+```
+
+### Real-world Usage
+
+Process output from common tools:
+
+```bash
+# Docker build output
+docker build . > docker.log 2>&1
+bun cli.ts docker.log
+
+# Git operations with progress
+git clone https://github.com/user/repo.git > git.log 2>&1
+bun cli.ts git.log
+
+# Package manager operations
+yarn install > yarn.log 2>&1
+bun cli.ts yarn.log
+```
+
 ## Examples
 
 ### Progress Bar Processing
@@ -141,6 +197,23 @@ console.log(renderer.render());
 // Line 1Modified
 // Line 2
 // Line 3
+```
+
+### Processing Real Terminal Output
+
+```typescript
+import { readFile } from 'fs/promises';
+import { TerminalTextRender } from 'terminal-render';
+
+// Read raw terminal output from a file
+const rawOutput = await readFile('build-output.log', 'utf8');
+
+// Clean and render it
+const renderer = new TerminalTextRender();
+renderer.write(rawOutput);
+
+const cleanOutput = renderer.render();
+console.log(cleanOutput); // Clean, formatted output without ANSI codes
 ```
 
 ## License
