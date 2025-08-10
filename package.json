@@ -53,6 +53,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "from-node-stream": "^0.1.0",
     "yargs": "^18.0.0"
   },
   "lint-staged": {
