@@ -1,21 +1,35 @@
 #!/usr/bin/env node
-import { readFile } from 'fs/promises';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { readFile, writeFile } from 'fs/promises';
 import { TerminalTextRender } from './index.js';
 
 // Run if this file is executed directly
 await main();
 
 async function main() {
-  // Parse command line arguments
-  const args = process.argv.slice(2);
+  const argv = await yargs(hideBin(process.argv))
+    .command('$0 <file>', 'Render terminal text from a file', (yargs) => {
+      return yargs.positional('file', {
+        describe: 'Path to the file to render',
+        type: 'string',
+        demandOption: true,
+      });
+    })
+    .option('output', {
+      alias: 'o',
+      type: 'string',
+      description: 'Output file path (optional, defaults to stdout)',
+    })
+    .help()
+    .alias('help', 'h')
+    .example('$0 example-log.txt', 'Render text from example-log.txt')
+    .example('$0 input.txt -o output.txt', 'Render text and save to output.txt')
+    .strict()
+    .parseAsync();
 
-  if (args.length === 0) {
-    console.error('Usage: bun cli.ts <file>');
-    console.error('Example: bun cli.ts example-log.txt');
-    process.exit(1);
-  }
-
-  const filePath = args[0];
+  const filePath = argv.file as string;
+  const outputPath = argv.output as string | undefined;
 
   try {
     // Read the input file
@@ -25,8 +39,16 @@ async function main() {
     const renderer = new TerminalTextRender();
     renderer.write(content);
 
-    // Output the rendered result
-    console.log(renderer.render());
+    // Get the rendered result
+    const result = renderer.render();
+
+    // Output the result
+    if (outputPath) {
+      await writeFile(outputPath, result, 'utf8');
+      console.log(`Rendered output saved to: ${outputPath}`);
+    } else {
+      console.log(result);
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error(`Error: ${error.message}`);
