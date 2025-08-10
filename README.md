@@ -24,15 +24,15 @@ bun install
 ```typescript
 import { TerminalTextRender, createTerminalLogManager } from 'terminal-render';
 
-const renderer = new TerminalTextRender();
-
 // Write text with ANSI codes
+const renderer = new TerminalTextRender();
 renderer.write('Hello\x1b[1;5HWorld'); // Position cursor and write
 console.log(renderer.render()); // Output: "World"
 
 // Handle progress indicators
-renderer.write('Progress: 0%\rProgress: 50%\rProgress: 100%');
-console.log(renderer.render()); // Output: "Progress: 100%"
+const renderer2 = new TerminalTextRender();
+renderer2.write('Progress: 0%\rProgress: 50%\rProgress: 100%');
+console.log(renderer2.render()); // Output: "Progress: 100%"
 ```
 
 ### Factory Function
