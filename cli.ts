@@ -3,13 +3,12 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile, writeFile } from 'fs/promises';
 import { TerminalTextRender } from './index';
-import { fromReadable } from 'from-node-stream';
 
 // Run if this file is executed directly
 await main();
 
 async function readStdin(): Promise<string> {
-  return await fromReadable(process.stdin).text();
+  return (await process.stdin.toArray()).map((e) => e).join('');
 }
 
 async function main() {
@@ -51,11 +50,7 @@ async function main() {
     filePath === '-' ? await readStdin() : await readFile(filePath, 'utf8');
 
   // Create renderer and process content
-  const renderer = new TerminalTextRender();
-  renderer.write(content);
-
-  // Get the rendered result
-  const result = renderer.render();
+  const result = new TerminalTextRender().write(content).render();
 
   // Output the result
   if (outputPath) {
