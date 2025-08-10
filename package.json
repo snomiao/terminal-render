@@ -11,7 +11,7 @@
   "scripts": {
     "test": "bun test && tsc",
     "test:watch": "bun test --watch",
-    "build": "bun run build index.ts cli.ts --outdir=dist",
+    "build": "bun build index.ts cli.ts --outdir=dist",
     "dev": "bun index.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -21,6 +21,7 @@
   },
   "keywords": [
     "terminal",
+    "ansi-escapes",
     "ansi",
     "text",
     "render"
