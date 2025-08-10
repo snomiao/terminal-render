@@ -215,6 +215,126 @@ describe('TerminalTextRender', () => {
       renderer.write('[##########] 100%');
       expect(renderer.render()).toBe('Progress: [##########] 100%');
     });
+
+    test('should handle cursorHide and cursorShow', () => {
+      renderer.write('Before');
+      renderer.write(ansiEscapes.cursorHide);
+      renderer.write(' Hidden ');
+      renderer.write(ansiEscapes.cursorShow);
+      renderer.write('After');
+      // Cursor hide/show don't affect text rendering, just cursor visibility
+      expect(renderer.render()).toBe('Before Hidden After');
+    });
+
+    test('should handle beep', () => {
+      renderer.write('Alert');
+      renderer.write(ansiEscapes.beep);
+      renderer.write('!');
+      // Beep is ASCII character 7 (\x07) - it gets rendered as is
+      expect(renderer.render()).toBe('Alert\x07!');
+    });
+
+    test('should handle clearTerminal', () => {
+      renderer.write('Old content\nMore content');
+      renderer.write(ansiEscapes.clearTerminal);
+      renderer.write('New content');
+      expect(renderer.render()).toBe('New content');
+    });
+
+    test('should handle enterAlternativeScreen and exitAlternativeScreen', () => {
+      renderer.write('Main screen');
+      renderer.write(ansiEscapes.enterAlternativeScreen);
+      renderer.write('Alt screen content');
+      renderer.write(ansiEscapes.exitAlternativeScreen);
+      renderer.write(' back to main');
+      // Alternative screen sequences don't affect our basic text rendering
+      expect(renderer.render()).toBe(
+        'Main screenAlt screen content back to main'
+      );
+    });
+
+    test('should handle eraseLine variants', () => {
+      // Test eraseLine (\x1b[2K) - clears entire line
+      renderer.write('Hello World Test');
+      renderer.write(ansiEscapes.cursorBackward(4));
+      renderer.write(ansiEscapes.eraseLine);
+      renderer.write('END');
+      expect(renderer.render()).toBe('            END');
+
+      // Reset and test eraseStartLine (\x1b[1K) - clears from beginning to cursor
+      renderer.clear();
+      renderer.write('Hello World Test');
+      renderer.write(ansiEscapes.cursorBackward(4));
+      renderer.write(ansiEscapes.eraseStartLine);
+      renderer.write('NEW');
+      expect(renderer.render()).toBe('            NEWt');
+    });
+
+    test('should handle eraseUp and eraseDown', () => {
+      renderer.write('Line 1\nLine 2\nLine 3\nLine 4');
+      renderer.write(ansiEscapes.cursorUp(2));
+      renderer.write(ansiEscapes.eraseUp);
+      // eraseUp (\x1b[1J) is not implemented in our renderer, text remains unchanged
+      expect(renderer.render()).toBe('Line 1\nLine 2\nLine 3\nLine 4');
+
+      // Reset and test eraseDown
+      renderer.clear();
+      renderer.write('Line 1\nLine 2\nLine 3\nLine 4');
+      renderer.write(ansiEscapes.cursorUp(2));
+      renderer.write(ansiEscapes.eraseDown);
+      // eraseDown (\x1b[J) is not implemented in our renderer, text remains unchanged
+      expect(renderer.render()).toBe('Line 1\nLine 2\nLine 3\nLine 4');
+    });
+
+    test('should handle scrollUp and scrollDown', () => {
+      renderer.write('Line 1\nLine 2\nLine 3');
+      renderer.write(ansiEscapes.scrollUp);
+      renderer.write('New Line');
+      // scrollUp (\x1b[S) is not implemented in our renderer, text just appends
+      expect(renderer.render()).toContain('New Line');
+
+      renderer.write(ansiEscapes.scrollDown);
+      renderer.write(' More');
+      // scrollDown (\x1b[T) is not implemented in our renderer, text just appends
+      expect(renderer.render()).toContain('More');
+    });
+
+    test('should handle link sequences', () => {
+      renderer.write('Visit ');
+      renderer.write(ansiEscapes.link('https://example.com', 'Example'));
+      renderer.write(' for more info');
+      // Link sequences create hyperlinks but don't affect basic text rendering
+      expect(renderer.render()).toContain('Visit');
+      expect(renderer.render()).toContain('Example');
+      expect(renderer.render()).toContain('for more info');
+    });
+
+    test('should handle image sequences', () => {
+      renderer.write('Image: ');
+      const imageData = new Uint8Array([0x89, 0x50, 0x4e, 0x47]); // PNG header
+      renderer.write(ansiEscapes.image(imageData));
+      renderer.write(' displayed');
+      // Image sequences don't affect basic text rendering
+      expect(renderer.render()).toContain('Image:');
+      expect(renderer.render()).toContain('displayed');
+    });
+
+    test('should handle iTerm specific sequences', () => {
+      renderer.write('iTerm feature: ');
+      renderer.write(ansiEscapes.iTerm.setCwd('/home/user'));
+      renderer.write('set working directory');
+      // iTerm sequences don't affect basic text rendering
+      expect(renderer.render()).toContain('iTerm feature:');
+      expect(renderer.render()).toContain('set working directory');
+    });
+
+    test('should handle cursorGetPosition', () => {
+      renderer.write('Position test');
+      renderer.write(ansiEscapes.cursorGetPosition);
+      renderer.write(' after query');
+      // Position query doesn't affect text rendering
+      expect(renderer.render()).toBe('Position test after query');
+    });
   });
 
   describe('progress indicators', () => {
