@@ -46,35 +46,22 @@ async function main() {
   const filePath = argv.file as string;
   const outputPath = argv.output as string | undefined;
 
-  try {
-    // Read the input content (either from file or stdin)
-    let content: string;
-    if (filePath === '-') {
-      content = await readStdin();
-    } else {
-      content = await readFile(filePath, 'utf8');
-    }
+  // Read the input content (either from file or stdin)
+  const content: string =
+    filePath === '-' ? await readStdin() : await readFile(filePath, 'utf8');
 
-    // Create renderer and process content
-    const renderer = new TerminalTextRender();
-    renderer.write(content);
+  // Create renderer and process content
+  const renderer = new TerminalTextRender();
+  renderer.write(content);
 
-    // Get the rendered result
-    const result = renderer.render();
+  // Get the rendered result
+  const result = renderer.render();
 
-    // Output the result
-    if (outputPath) {
-      await writeFile(outputPath, result, 'utf8');
-      console.log(`Rendered output saved to: ${outputPath}`);
-    } else {
-      console.log(result);
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
-    } else {
-      console.error('Unknown error occurred');
-    }
-    process.exit(1);
+  // Output the result
+  if (outputPath) {
+    await writeFile(outputPath, result, 'utf8');
+    console.log(`Rendered output saved to: ${outputPath}`);
+  } else {
+    console.log(result);
   }
 }
