@@ -2,6 +2,8 @@
 
 A TypeScript library for rendering terminal text that handles ANSI escape sequences and control characters. This library simulates terminal behavior by processing terminal control codes and ANSI escape sequences to produce clean text output.
 
+Developed for [snomiao/claude-yes](https://github.com/snomiao/claude-yes) - an interactive CLI tool for Claude AI.
+
 ## Features
 
 - **ANSI Escape Sequence Support**: Handles cursor movement, positioning, and screen clearing commands
@@ -222,5 +224,6 @@ MIT
 
 ## Related Projects
 
+- [soloterm/screen](https://github.com/soloterm/screen) - A terminal renderer written in pure PHP. Unlike a full terminal emulator, Screen focuses specifically on correctly interpreting and rendering text content with formatting rather than handling input, interactive sessions, or process management.
 - [ansi-to-react](https://www.npmjs.com/package/ansi-to-react) - Convert ANSI escape codes to React components
 - [ansi-parser](https://www.npmjs.com/package/ansi-parser) - Parse ANSI escape sequences
