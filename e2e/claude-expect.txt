@@ -1,0 +1,32 @@
+claude-code-execute@1.0.0:  do nothing and exit
+⭐ Starting claude, automatically responding to yes/no prompts...
+⚠️ Important Security Warning: Only run this on trusted repositories. This tool automatically responds to prompts and can execute commands without user confirmation. Be aware of potential prompt injection attacks where malicious code or instructions could be embedded in files or user inputs to manipulate the automated responses.
+╭─────────────────────────────────────────────────────╮
+│ ✻ Welcome to Claude Code!                           │
+│                                                     │
+│   /help for help, /status for your current setup    │
+│                                                     │
+│   cwd: /code/snomiao/claude-code-execute/tree/main  │
+╰─────────────────────────────────────────────────────╯
+
+> do nothing and exit
+
+● I'll exit without taking any action.
+
+
+> /exit 
+  ⎿  (no content)
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ >                                                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+  ? for shortcuts                                           ◯ IDE disconnected
+
+Total cost:            $0.0171
+Total duration (API):  2.7s
+Total duration (wall): 48.3s
+Total code changes:    0 lines added, 0 lines removed
+Usage by model:
+       claude-sonnet:  4 input, 14 output, 10.8k cache read, 3.6k cache write
+
+With the $100/mo Max plan, use Sonnet as your daily driver with predictable pricing. • /upgrade to sign up

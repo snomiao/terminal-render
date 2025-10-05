@@ -1,0 +1,25 @@
+
+✨⬆️ Update available! 0.42.0 -> 0.44.0.
+Run npm install -g @openai/codex@latest to update.
+
+╭─────────────────────────────────────────────────────────╮
+│ >_ OpenAI Codex (v0.42.0)                               │
+│                                                         │
+│ model:     gpt-5-codex   /model to change               │
+│ directory: /path-path-path-/…/path-path-path-path-path- │
+╰─────────────────────────────────────────────────────────╯
+
+  To get started, describe a task or try one of these commands:
+
+  /init - create an AGENTS.md file with instructions for Codex
+  /status - show current session configuration
+  /approvals - choose what Codex can do without approval
+  /model - choose what model and reasoning effort to use
+
+▌ /exit
+
+> Session closed.
+
+▌ Summarize recent commits
+
+⏎ send   Ctrl+J newline   Ctrl+T transcript   Ctrl+C quit   167 tokens used   10
