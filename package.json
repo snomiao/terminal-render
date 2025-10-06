@@ -1,6 +1,6 @@
 {
   "name": "terminal-render",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Terminal text renderer that handles ANSI escape sequences and control characters",
   "main": "index.ts",
   "type": "module",
