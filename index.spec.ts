@@ -274,16 +274,16 @@ describe('TerminalTextRender', () => {
       renderer.write('Line 1\nLine 2\nLine 3\nLine 4');
       renderer.write(ansiEscapes.cursorUp(2));
       renderer.write(ansiEscapes.eraseUp);
-      // eraseUp (\x1b[1J) is not implemented in our renderer, text remains unchanged
-      expect(renderer.render()).toBe('Line 1\nLine 2\nLine 3\nLine 4');
+      // eraseUp (\x1b[1J) clears from start of display to cursor position
+      expect(renderer.render()).toBe('\n\nLine 3\nLine 4');
 
       // Reset and test eraseDown
       renderer.clear();
       renderer.write('Line 1\nLine 2\nLine 3\nLine 4');
       renderer.write(ansiEscapes.cursorUp(2));
       renderer.write(ansiEscapes.eraseDown);
-      // eraseDown (\x1b[J) is not implemented in our renderer, text remains unchanged
-      expect(renderer.render()).toBe('Line 1\nLine 2\nLine 3\nLine 4');
+      // eraseDown (\x1b[J) clears from cursor position to end of display
+      expect(renderer.render()).toBe('Line 1\nLine 2');
     });
 
     test('should handle scrollUp and scrollDown', () => {
