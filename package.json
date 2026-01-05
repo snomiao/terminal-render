@@ -34,6 +34,14 @@
   ],
   "author": "snomiao",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snomiao/terminal-render.git"
+  },
+  "bugs": {
+    "url": "https://github.com/snomiao/terminal-render/issues"
+  },
+  "homepage": "https://github.com/snomiao/terminal-render#readme",
   "devDependencies": {
     "@types/ansi-escapes": "^3.0.1",
     "@types/bun": "latest",
