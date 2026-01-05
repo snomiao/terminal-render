@@ -19,5 +19,5 @@ it('works on codex', async () => {
 
   await writeFile('e2e/codex-2-actual.log', out); // for debugging
 
-  expect(out).toEqual(await readFile('e2e/codex-2-expect.txt', 'utf8'));
+  expect(out.trim()).toEqual((await readFile('e2e/codex-2-expect.txt', 'utf8')).trim());
 });
