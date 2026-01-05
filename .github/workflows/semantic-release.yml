@@ -12,7 +12,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: latest
-        #[semantic-release]: node version >=20.8.1 is required. Found v18.20.5.
       - uses: oven-sh/setup-bun@v2
       - run: bun i
       - run: bun run test

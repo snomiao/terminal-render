@@ -13,7 +13,7 @@
     "*.ts"
   ],
   "scripts": {
-    "test": "bun test && tsc",
+    "test": "bun test && bunx tsc",
     "test:watch": "bun test --watch",
     "build": "run-p build:index build:cli",
     "build:index": "bun build index.ts --outdir=dist",
