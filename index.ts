@@ -63,6 +63,15 @@ export class TerminalTextRender {
             // Check for complex sequences like eraseLines first
             if (this.isEraseSequence(data, i)) {
               i = this.handleEraseSequence(data, i) - 1; // -1 because loop will increment
+            } else if (i + 1 < data.length && data[i + 1] === 'M') {
+              // ESC M - Reverse Index (cursor up, scroll down at top margin)
+              if (this.cursorRow > this.scrollTop) {
+                this.cursorRow = Math.max(this.scrollTop, this.cursorRow - 1);
+              } else {
+                this.scrollDown(1);
+                this.cursorRow = this.scrollTop;
+              }
+              i++; // Skip the 'M'
             } else if (i + 1 < data.length && data[i + 1] === '[') {
               const escapeStart = i;
               i += 2; // Skip ESC and [
@@ -344,15 +353,21 @@ export class TerminalTextRender {
       }
 
       case 's': // Save cursor position
-        this.savedCursorRow = this.cursorRow;
-        this.savedCursorCol = this.cursorCol;
+        // Only treat CSI s (with no params) as save cursor; other variants are mode queries/settings
+        if (escapeCode === '') {
+          this.savedCursorRow = this.cursorRow;
+          this.savedCursorCol = this.cursorCol;
+        }
         break;
 
       case 'u': // Restore cursor position
-        this.cursorRow = this.savedCursorRow;
-        this.cursorCol = this.savedCursorCol;
-        this.isAtRestoredPosition = true;
-        this.ensureLine(this.cursorRow);
+        // Only treat CSI u (with no params) as restore cursor; other variants are mode queries/settings
+        if (escapeCode === '') {
+          this.cursorRow = this.savedCursorRow;
+          this.cursorCol = this.savedCursorCol;
+          this.isAtRestoredPosition = true;
+          this.ensureLine(this.cursorRow);
+        }
         break;
 
       case 'r': {
@@ -578,6 +593,31 @@ export class TerminalTextRender {
         // Add a blank line at the bottom of the region
         this.lines[bottomIndex] = '';
       }
+    }
+  }
+
+  private scrollDown(count: number): void {
+    if (count <= 0) {
+      return;
+    }
+
+    const top = this.scrollTop;
+    const bottomIndex = this.getScrollBottomIndex();
+
+    if (bottomIndex < top) {
+      return;
+    }
+
+    const regionHeight = bottomIndex - top + 1;
+    const actualCount = Math.min(count, regionHeight);
+
+    for (let i = 0; i < actualCount; i++) {
+      // Shift all lines down by 1 within the region
+      for (let row = bottomIndex; row > top; row--) {
+        this.lines[row] = this.lines[row - 1] || '';
+      }
+      // Add a blank line at the top of the region
+      this.lines[top] = '';
     }
   }
 }

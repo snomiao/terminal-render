@@ -68,3 +68,7 @@ Thumbs.db
 core
 
 !test-data/*.log
+
+# agents love to generate temp debug files
+/debug-*.ts
+/temp*.ts
