@@ -24,16 +24,16 @@ bun install
 ### Basic Usage
 
 ```typescript
-import { TerminalTextRender, createTerminalLogManager } from 'terminal-render';
+import { TerminalTextRender, createTerminalLogManager } from "terminal-render";
 
 // Write text with ANSI codes
 const renderer = new TerminalTextRender();
-renderer.write('Hello\x1b[1;5HWorld'); // Position cursor and write
+renderer.write("Hello\x1b[1;5HWorld"); // Position cursor and write
 console.log(renderer.render()); // Output: "World"
 
 // Handle progress indicators
 const renderer2 = new TerminalTextRender();
-renderer2.write('Progress: 0%\rProgress: 50%\rProgress: 100%');
+renderer2.write("Progress: 0%\rProgress: 50%\rProgress: 100%");
 console.log(renderer2.render()); // Output: "Progress: 100%"
 ```
 
@@ -41,7 +41,7 @@ console.log(renderer2.render()); // Output: "Progress: 100%"
 
 ```typescript
 const manager = createTerminalLogManager();
-manager.write('Terminal output with\nANSI codes\x1b[2J');
+manager.write("Terminal output with\nANSI codes\x1b[2J");
 console.log(manager.render());
 ```
 
@@ -177,7 +177,7 @@ bun cli.ts yarn.log
 ```typescript
 const renderer = new TerminalTextRender();
 const terminalOutput =
-  'Installing packages...\nProgress: [          ] 0%\rProgress: [#####     ] 50%\rProgress: [##########] 100%\rComplete!\n';
+  "Installing packages...\nProgress: [          ] 0%\rProgress: [#####     ] 50%\rProgress: [##########] 100%\rComplete!\n";
 
 renderer.write(terminalOutput);
 console.log(renderer.render());
@@ -191,9 +191,9 @@ console.log(renderer.render());
 
 ```typescript
 const renderer = new TerminalTextRender();
-renderer.write('Line 1\nLine 2\nLine 3');
-renderer.write('\x1b[2A'); // Move up 2 lines
-renderer.write('Modified'); // Overwrite content
+renderer.write("Line 1\nLine 2\nLine 3");
+renderer.write("\x1b[2A"); // Move up 2 lines
+renderer.write("Modified"); // Overwrite content
 console.log(renderer.render());
 // Output:
 // Line 1Modified
@@ -204,11 +204,11 @@ console.log(renderer.render());
 ### Processing Real Terminal Output
 
 ```typescript
-import { readFile } from 'fs/promises';
-import { TerminalTextRender } from 'terminal-render';
+import { readFile } from "fs/promises";
+import { TerminalTextRender } from "terminal-render";
 
 // Read raw terminal output from a file
-const rawOutput = await readFile('build-output.log', 'utf8');
+const rawOutput = await readFile("build-output.log", "utf8");
 
 // Clean and render it
 const renderer = new TerminalTextRender();

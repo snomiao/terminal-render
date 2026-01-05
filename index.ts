@@ -11,7 +11,7 @@ export function createTerminalLogManager(): TerminalTextRender {
 
 // Terminal Log Manager to handle terminal control characters
 export class TerminalTextRender {
-  private lines: string[] = [''];
+  private lines: string[] = [""];
   private scrollback: string[] = []; // Lines that have scrolled off the top
   private cursorRow = 0;
   private cursorCol = 0;
@@ -33,17 +33,14 @@ export class TerminalTextRender {
       const char = data[i];
 
       switch (char) {
-        case '\r': // Carriage return - move cursor to beginning of current line
+        case "\r": // Carriage return - move cursor to beginning of current line
           this.cursorCol = 0;
           break;
 
-        case '\n': {
+        case "\n": {
           // Line feed - move to next line
           this.endedWithNewline = true;
-          if (
-            this.scrollBottom !== null &&
-            this.cursorRow === this.getScrollBottomIndex()
-          ) {
+          if (this.scrollBottom !== null && this.cursorRow === this.getScrollBottomIndex()) {
             this.scrollUp(1);
             this.cursorCol = 0;
             this.ensureLine(this.cursorRow);
@@ -56,23 +53,23 @@ export class TerminalTextRender {
           break;
         }
 
-        case '\b': // Backspace - move cursor back one position
+        case "\b": // Backspace - move cursor back one position
           if (this.cursorCol > 0) {
             this.cursorCol--;
           }
           break;
 
-        case '\t': // Tab - move to next tab stop (8 characters)
+        case "\t": // Tab - move to next tab stop (8 characters)
           this.cursorCol = Math.floor((this.cursorCol + 8) / 8) * 8;
           break;
 
         default:
           // Handle ANSI escape sequences
-          if (char === '\x1b') {
+          if (char === "\x1b") {
             // Check for complex sequences like eraseLines first
             if (this.isEraseSequence(data, i)) {
               i = this.handleEraseSequence(data, i) - 1; // -1 because loop will increment
-            } else if (i + 1 < data.length && data[i + 1] === 'M') {
+            } else if (i + 1 < data.length && data[i + 1] === "M") {
               // ESC M - Reverse Index (cursor up, scroll down at top margin)
               if (this.cursorRow > this.scrollTop) {
                 this.cursorRow = Math.max(this.scrollTop, this.cursorRow - 1);
@@ -81,19 +78,16 @@ export class TerminalTextRender {
                 this.cursorRow = this.scrollTop;
               }
               i++; // Skip the 'M'
-            } else if (i + 1 < data.length && data[i + 1] === ']') {
+            } else if (i + 1 < data.length && data[i + 1] === "]") {
               // OSC (Operating System Command) - ignore (e.g. set window title)
               i = this.handleOscSequence(data, i) - 1; // -1 because loop will increment
-            } else if (i + 1 < data.length && data[i + 1] === '[') {
+            } else if (i + 1 < data.length && data[i + 1] === "[") {
               const escapeStart = i;
               i += 2; // Skip ESC and [
 
               // Find the end of the escape sequence
               let escapeEnd = i;
-              while (
-                escapeEnd < data.length &&
-                !/[a-zA-Z]/.test(data[escapeEnd])
-              ) {
+              while (escapeEnd < data.length && !/[a-zA-Z]/.test(data[escapeEnd])) {
                 escapeEnd++;
               }
 
@@ -107,16 +101,12 @@ export class TerminalTextRender {
               } else {
                 // Handle sequences that don't end with a letter (like [6n)
                 const escapeCode = data.slice(escapeStart + 2);
-                this.handleAnsiEscape(escapeCode, '');
+                this.handleAnsiEscape(escapeCode, "");
                 i = data.length - 1; // Skip to end of data
               }
-            } else if (
-              i + 1 < data.length &&
-              data[i + 1] === 'c' &&
-              i + 2 >= data.length
-            ) {
+            } else if (i + 1 < data.length && data[i + 1] === "c" && i + 2 >= data.length) {
               // ESC c - Reset terminal (clear screen and reset cursor)
-              this.lines = [''];
+              this.lines = [""];
               this.scrollback = [];
               this.cursorRow = 0;
               this.cursorCol = 0;
@@ -125,17 +115,14 @@ export class TerminalTextRender {
               this.scrollTop = 0;
               this.scrollBottom = null;
               i++; // Skip the 'c'
-            } else if (i + 1 < data.length && data[i + 1] === '?') {
+            } else if (i + 1 < data.length && data[i + 1] === "?") {
               // Handle CSI sequences starting with ESC? (like [?2004h, [?1004h, etc.)
               const escapeStart = i;
               i += 2; // Skip ESC and ?
 
               // Find the end of the escape sequence
               let escapeEnd = i;
-              while (
-                escapeEnd < data.length &&
-                !/[a-zA-Z]/.test(data[escapeEnd])
-              ) {
+              while (escapeEnd < data.length && !/[a-zA-Z]/.test(data[escapeEnd])) {
                 escapeEnd++;
               }
 
@@ -147,17 +134,14 @@ export class TerminalTextRender {
                 this.handleCsiQuestionSequence(escapeCode, command);
                 i = escapeEnd; // Skip the entire escape sequence
               }
-            } else if (i + 1 < data.length && data[i + 1] === '>') {
+            } else if (i + 1 < data.length && data[i + 1] === ">") {
               // Handle CSI sequences starting with ESC> (like [>7u)
               const escapeStart = i;
               i += 2; // Skip ESC and >
 
               // Find the end of the escape sequence
               let escapeEnd = i;
-              while (
-                escapeEnd < data.length &&
-                !/[a-zA-Z]/.test(data[escapeEnd])
-              ) {
+              while (escapeEnd < data.length && !/[a-zA-Z]/.test(data[escapeEnd])) {
                 escapeEnd++;
               }
 
@@ -179,20 +163,15 @@ export class TerminalTextRender {
             // Special case: if at restored position and within existing text, insert instead of overwrite
             if (this.isAtRestoredPosition && this.cursorCol < line.length) {
               this.lines[this.cursorRow] =
-                line.substring(0, this.cursorCol) +
-                char +
-                line.substring(this.cursorCol);
+                line.substring(0, this.cursorCol) + char + line.substring(this.cursorCol);
               this.isAtRestoredPosition = false;
             } else if (this.cursorCol >= line.length) {
               // Extend line if cursor is beyond current length
-              this.lines[this.cursorRow] =
-                line + ' '.repeat(this.cursorCol - line.length) + char;
+              this.lines[this.cursorRow] = line + " ".repeat(this.cursorCol - line.length) + char;
             } else {
               // Overwrite character at current position
               this.lines[this.cursorRow] =
-                line.substring(0, this.cursorCol) +
-                char +
-                line.substring(this.cursorCol + 1);
+                line.substring(0, this.cursorCol) + char + line.substring(this.cursorCol + 1);
             }
             this.cursorCol++;
           }
@@ -204,29 +183,29 @@ export class TerminalTextRender {
 
   private ensureLine(row: number): void {
     while (this.lines.length <= row) {
-      this.lines.push('');
+      this.lines.push("");
     }
   }
 
   private handleAnsiEscape(escapeCode: string, command: string): void {
     switch (command) {
-      case '': {
+      case "": {
         // Handle sequences without a command letter (like [6n)
-        if (escapeCode === '6n') {
+        if (escapeCode === "6n") {
           // Device status report - ignore
-        } else if (escapeCode === 'c') {
+        } else if (escapeCode === "c") {
           // Device attributes - ignore
         }
         break;
       }
-      case 'A': {
+      case "A": {
         // Cursor up
         const upLines = parseInt(escapeCode) || 1;
         this.cursorRow = Math.max(0, this.cursorRow - upLines);
         break;
       }
 
-      case 'B': {
+      case "B": {
         // Cursor down
         const downLines = parseInt(escapeCode) || 1;
         const originalRow = this.cursorRow;
@@ -240,21 +219,21 @@ export class TerminalTextRender {
         break;
       }
 
-      case 'C': {
+      case "C": {
         // Cursor forward
         const forwardCols = parseInt(escapeCode) || 1;
         this.cursorCol += forwardCols;
         break;
       }
 
-      case 'D': {
+      case "D": {
         // Cursor backward
         const backwardCols = parseInt(escapeCode) || 1;
         this.cursorCol = Math.max(0, this.cursorCol - backwardCols);
         break;
       }
 
-      case 'E': {
+      case "E": {
         // Cursor next line
         const nextLines = parseInt(escapeCode) || 1;
         this.cursorRow += nextLines;
@@ -263,7 +242,7 @@ export class TerminalTextRender {
         break;
       }
 
-      case 'F': {
+      case "F": {
         // Cursor previous line
         const prevLines = parseInt(escapeCode) || 1;
         this.cursorRow = Math.max(0, this.cursorRow - prevLines);
@@ -271,13 +250,13 @@ export class TerminalTextRender {
         break;
       }
 
-      case 'G': {
+      case "G": {
         // Cursor horizontal absolute
-        if (escapeCode === '') {
+        if (escapeCode === "") {
           // Special case: ansiEscapes.cursorLeft behavior varies by context
           // If cursor is at the end of a single-line text (like "Hello World"), move back one
           // Otherwise, move to beginning of line
-          const currentLine = this.lines[this.cursorRow] || '';
+          const currentLine = this.lines[this.cursorRow] || "";
           if (
             this.cursorRow === 0 &&
             this.lines.length === 1 &&
@@ -297,10 +276,10 @@ export class TerminalTextRender {
         break;
       }
 
-      case 'H': // Cursor position
-      case 'f': {
+      case "H": // Cursor position
+      case "f": {
         // Cursor position (alternative)
-        const parts = escapeCode.split(';');
+        const parts = escapeCode.split(";");
         this.cursorRow = Math.max(0, (parseInt(parts[0]) || 1) - 1);
         this.cursorCol = Math.max(0, (parseInt(parts[1]) || 1) - 1);
         this.isAtRestoredPosition = false; // Reset flag for explicit positioning
@@ -308,74 +287,65 @@ export class TerminalTextRender {
         break;
       }
 
-      case 'J': // Erase display
+      case "J": // Erase display
         this.ensureLine(this.cursorRow);
-        if (escapeCode === '2') {
+        if (escapeCode === "2") {
           // Clear entire screen
-          this.lines = [''];
+          this.lines = [""];
           this.scrollback = [];
           this.cursorRow = 0;
           this.cursorCol = 0;
           this.scrollTop = 0;
           this.scrollBottom = null;
-        } else if (escapeCode === '' || escapeCode === '0') {
+        } else if (escapeCode === "" || escapeCode === "0") {
           // Clear from cursor to end of display
-          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(
-            0,
-            this.cursorCol
-          );
+          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(0, this.cursorCol);
           for (let row = this.cursorRow + 1; row < this.lines.length; row++) {
-            this.lines[row] = '';
+            this.lines[row] = "";
           }
-        } else if (escapeCode === '1') {
+        } else if (escapeCode === "1") {
           // Clear from start to cursor
           for (let row = 0; row < this.cursorRow; row++) {
-            this.lines[row] = '';
+            this.lines[row] = "";
           }
-          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(
-            this.cursorCol
-          );
+          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(this.cursorCol);
         }
         break;
 
-      case 'K': // Erase line
-        if (escapeCode === '' || escapeCode === '0') {
+      case "K": // Erase line
+        if (escapeCode === "" || escapeCode === "0") {
           // Clear from cursor to end of line
           this.ensureLine(this.cursorRow);
-          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(
-            0,
-            this.cursorCol
-          );
-        } else if (escapeCode === '1') {
+          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(0, this.cursorCol);
+        } else if (escapeCode === "1") {
           // Clear from beginning of line to cursor
           this.ensureLine(this.cursorRow);
           this.lines[this.cursorRow] =
-            ' '.repeat(this.cursorCol) +
-            this.lines[this.cursorRow].substring(this.cursorCol);
-        } else if (escapeCode === '2') {
+            " ".repeat(this.cursorCol) + this.lines[this.cursorRow].substring(this.cursorCol);
+        } else if (escapeCode === "2") {
           // Clear entire line
           this.ensureLine(this.cursorRow);
-          this.lines[this.cursorRow] = '';
+          this.lines[this.cursorRow] = "";
         }
         break;
 
-      case 'S': {
+      case "S": {
         const scrollCount = parseInt(escapeCode) || 1;
         this.scrollUp(scrollCount);
         break;
       }
 
-      case 's': // Save cursor position
+      case "s": // Save cursor position
         // Only treat CSI s (with no params) as save cursor; other variants are mode queries/settings
-        if (escapeCode === '') {
+        if (escapeCode === "") {
           this.savedCursorRow = this.cursorRow;
           this.savedCursorCol = this.cursorCol;
         }
         break;
 
-      case 'u': // Restore cursor position
+      case "u": // Restore cursor position
         // Only treat CSI u (with no params) as restore cursor; other variants are mode queries/settings
-        if (escapeCode === '') {
+        if (escapeCode === "") {
           this.cursorRow = this.savedCursorRow;
           this.cursorCol = this.savedCursorCol;
           this.isAtRestoredPosition = true;
@@ -383,16 +353,14 @@ export class TerminalTextRender {
         }
         break;
 
-      case 'r': {
-        if (escapeCode === '') {
+      case "r": {
+        if (escapeCode === "") {
           this.scrollTop = 0;
           this.scrollBottom = null;
         } else {
-          const parts = escapeCode.split(';');
-          const topParam = parseInt(parts[0] || '1', 10) || 1;
-          const bottomParam = parts[1]
-            ? parseInt(parts[1], 10) || topParam
-            : null;
+          const parts = escapeCode.split(";");
+          const topParam = parseInt(parts[0] || "1", 10) || 1;
+          const bottomParam = parts[1] ? parseInt(parts[1], 10) || topParam : null;
 
           const top = Math.max(0, topParam - 1);
           this.scrollTop = top;
@@ -408,10 +376,7 @@ export class TerminalTextRender {
 
         if (this.scrollBottom !== null) {
           const bottomIndex = this.getScrollBottomIndex();
-          this.cursorRow = Math.min(
-            Math.max(this.cursorRow, this.scrollTop),
-            bottomIndex
-          );
+          this.cursorRow = Math.min(Math.max(this.cursorRow, this.scrollTop), bottomIndex);
         }
         break;
       }
@@ -423,13 +388,13 @@ export class TerminalTextRender {
     // These are typically terminal mode settings and can be ignored for rendering
     // Examples: [?2004h, [?1004h, [?u, [?2026h, [?2026l
     switch (command) {
-      case 'h':
+      case "h":
         // Set mode
         break;
-      case 'l':
+      case "l":
         // Reset mode
         break;
-      case 'u':
+      case "u":
         // Normal keypad mode
         break;
       default:
@@ -442,7 +407,7 @@ export class TerminalTextRender {
     // Handle CSI sequences starting with ESC> (like [>7u)
     // These are typically application keypad mode settings and can be ignored for rendering
     switch (command) {
-      case 'u':
+      case "u":
         // Application keypad mode
         break;
       default:
@@ -457,16 +422,10 @@ export class TerminalTextRender {
 
     // Remove trailing empty lines
     const trimmedLines = [...allLines];
-    while (
-      trimmedLines.length > 1 &&
-      trimmedLines[trimmedLines.length - 1] === ''
-    ) {
+    while (trimmedLines.length > 1 && trimmedLines[trimmedLines.length - 1] === "") {
       if (this.shouldPreserveTrailingNewline(trimmedLines)) {
         // Preserve a single trailing newline if the last meaningful output ended with \n
-        if (
-          trimmedLines.length > 2 &&
-          trimmedLines[trimmedLines.length - 2] === ''
-        ) {
+        if (trimmedLines.length > 2 && trimmedLines[trimmedLines.length - 2] === "") {
           trimmedLines.pop();
           continue;
         }
@@ -474,7 +433,7 @@ export class TerminalTextRender {
       }
       trimmedLines.pop();
     }
-    return trimmedLines.join('\n');
+    return trimmedLines.join("\n");
   }
 
   private shouldPreserveTrailingNewline(lines: string[]): boolean {
@@ -486,17 +445,17 @@ export class TerminalTextRender {
     // This keeps rendered output matching recorded fixtures while still trimming stray trailing blanks.
     for (let i = lines.length - 2; i >= 0; i--) {
       const line = lines[i];
-      if (line === '') {
+      if (line === "") {
         continue;
       }
-      return line.startsWith('╰') && line.endsWith('╯');
+      return line.startsWith("╰") && line.endsWith("╯");
     }
 
     return false;
   }
 
   clear(): void {
-    this.lines = [''];
+    this.lines = [""];
     this.scrollback = [];
     this.cursorRow = 0;
     this.cursorCol = 0;
@@ -513,29 +472,26 @@ export class TerminalTextRender {
     const remaining = data.slice(i);
 
     // Must start with ESC[2K (clear line)
-    if (!remaining.startsWith('\x1b[2K')) {
+    if (!remaining.startsWith("\x1b[2K")) {
       return false;
     }
 
     let pos = 4; // Skip initial \x1b[2K
 
     // Look for pattern of \x1b[1A\x1b[2K (cursor up + clear line)
-    while (
-      pos < remaining.length &&
-      remaining.slice(pos, pos + 8) === '\x1b[1A\x1b[2K'
-    ) {
+    while (pos < remaining.length && remaining.slice(pos, pos + 8) === "\x1b[1A\x1b[2K") {
       pos += 8;
     }
 
     // Must end with \x1b[G (cursor to beginning of line)
-    return pos < remaining.length && remaining.slice(pos, pos + 3) === '\x1b[G';
+    return pos < remaining.length && remaining.slice(pos, pos + 3) === "\x1b[G";
   }
 
   private handleEraseSequence(data: string, i: number): number {
     // Handle eraseLines sequences of variable length
     const remaining = data.slice(i);
 
-    if (!remaining.startsWith('\x1b[2K')) {
+    if (!remaining.startsWith("\x1b[2K")) {
       return i;
     }
 
@@ -543,16 +499,13 @@ export class TerminalTextRender {
     let linesToClear = 1; // Count the initial line
 
     // Count how many cursor-up + clear-line operations follow
-    while (
-      pos < remaining.length &&
-      remaining.slice(pos, pos + 8) === '\x1b[1A\x1b[2K'
-    ) {
+    while (pos < remaining.length && remaining.slice(pos, pos + 8) === "\x1b[1A\x1b[2K") {
       pos += 8;
       linesToClear++;
     }
 
     // Must end with \x1b[G (cursor to beginning of line)
-    if (pos >= remaining.length || remaining.slice(pos, pos + 3) !== '\x1b[G') {
+    if (pos >= remaining.length || remaining.slice(pos, pos + 3) !== "\x1b[G") {
       return i;
     }
 
@@ -561,23 +514,19 @@ export class TerminalTextRender {
     // The sequence clears lines and positions the cursor
     const currentRow = this.cursorRow;
 
-    if (linesToClear === 2 && remaining === '\x1b[2K\x1b[1A\x1b[2K\x1b[G') {
+    if (linesToClear === 2 && remaining === "\x1b[2K\x1b[1A\x1b[2K\x1b[G") {
       // Special case for eraseLines(2): clear current and next line
       // This matches the test expectation
       for (let i = 0; i < 2 && currentRow + i < this.lines.length; i++) {
-        this.lines[currentRow + i] = '';
+        this.lines[currentRow + i] = "";
       }
       this.cursorCol = 0;
     } else {
       // General case: clear lines going upward from current position
       // This matches the raw ANSI sequence behavior for longer sequences
       const startRow = Math.max(0, currentRow - linesToClear + 1);
-      for (
-        let row = startRow;
-        row <= currentRow && row < this.lines.length;
-        row++
-      ) {
-        this.lines[row] = '';
+      for (let row = startRow; row <= currentRow && row < this.lines.length; row++) {
+        this.lines[row] = "";
       }
       this.cursorRow = startRow;
       this.cursorCol = 0;
@@ -589,7 +538,7 @@ export class TerminalTextRender {
   private handleOscSequence(data: string, i: number): number {
     // OSC: ESC ] ... BEL  or  ESC ] ... ESC \
     // We ignore the whole sequence since it doesn't affect rendered text.
-    if (i + 1 >= data.length || data[i] !== '\x1b' || data[i + 1] !== ']') {
+    if (i + 1 >= data.length || data[i] !== "\x1b" || data[i + 1] !== "]") {
       return i;
     }
 
@@ -597,13 +546,13 @@ export class TerminalTextRender {
     let terminatorStart = data.length;
     while (pos < data.length) {
       const ch = data[pos];
-      if (ch === '\x07') {
+      if (ch === "\x07") {
         // BEL terminator
         terminatorStart = pos;
         pos += 1;
         break;
       }
-      if (ch === '\x1b' && pos + 1 < data.length && data[pos + 1] === '\\') {
+      if (ch === "\x1b" && pos + 1 < data.length && data[pos + 1] === "\\") {
         // ST terminator (ESC \)
         terminatorStart = pos;
         pos += 2;
@@ -616,8 +565,8 @@ export class TerminalTextRender {
 
     // OSC 8 hyperlinks: keep the URI visible to satisfy tests and keep some context
     // Format: ]8;params;URI  (URI can be empty for "end link")
-    if (oscPayload.startsWith('8;')) {
-      const secondSemicolon = oscPayload.indexOf(';', 2);
+    if (oscPayload.startsWith("8;")) {
+      const secondSemicolon = oscPayload.indexOf(";", 2);
       if (secondSemicolon !== -1) {
         const uri = oscPayload.slice(secondSemicolon + 1);
         if (uri) {
@@ -659,26 +608,26 @@ export class TerminalTextRender {
       for (let i = 0; i < actualCount; i++) {
         // Move the top line to scrollback if it has content
         const scrolledLine = this.lines[0];
-        if (scrolledLine !== '' || this.scrollback.length > 0) {
+        if (scrolledLine !== "" || this.scrollback.length > 0) {
           this.scrollback.push(scrolledLine);
         }
 
         // Shift lines up within the region
         for (let row = 0; row < bottomIndex; row++) {
-          this.lines[row] = this.lines[row + 1] || '';
+          this.lines[row] = this.lines[row + 1] || "";
         }
         // Add blank line at bottom
-        this.lines[bottomIndex] = '';
+        this.lines[bottomIndex] = "";
       }
     } else {
       // For regions not starting at 0, just shift content (don't preserve)
       for (let i = 0; i < actualCount; i++) {
         // Shift all lines up by 1 within the region
         for (let row = top; row < bottomIndex; row++) {
-          this.lines[row] = this.lines[row + 1] || '';
+          this.lines[row] = this.lines[row + 1] || "";
         }
         // Add a blank line at the bottom of the region
-        this.lines[bottomIndex] = '';
+        this.lines[bottomIndex] = "";
       }
     }
   }
@@ -701,10 +650,10 @@ export class TerminalTextRender {
     for (let i = 0; i < actualCount; i++) {
       // Shift all lines down by 1 within the region
       for (let row = bottomIndex; row > top; row--) {
-        this.lines[row] = this.lines[row - 1] || '';
+        this.lines[row] = this.lines[row - 1] || "";
       }
       // Add a blank line at the top of the region
-      this.lines[top] = '';
+      this.lines[top] = "";
     }
   }
 }

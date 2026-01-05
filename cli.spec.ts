@@ -1,15 +1,15 @@
-import { test, expect, describe, beforeEach, afterEach } from 'bun:test';
-import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import { spawn } from 'child_process';
-import { join } from 'path';
+import { test, expect, describe, beforeEach, afterEach } from "bun:test";
+import { writeFile, readFile, unlink, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import { spawn } from "child_process";
+import { join } from "path";
 
-const CLI_PATH = join(import.meta.dir, 'cli.ts');
+const CLI_PATH = join(import.meta.dir, "cli.ts");
 
-describe('CLI', () => {
-  const testDir = join(import.meta.dir, 'test-temp');
-  const testFile = join(testDir, 'test-input.txt');
-  const outputFile = join(testDir, 'test-output.txt');
+describe("CLI", () => {
+  const testDir = join(import.meta.dir, "test-temp");
+  const testFile = join(testDir, "test-input.txt");
+  const outputFile = join(testDir, "test-output.txt");
 
   beforeEach(async () => {
     if (!existsSync(testDir)) {
@@ -26,127 +26,125 @@ describe('CLI', () => {
     }
   });
 
-  test('should render text from file and output to stdout', async () => {
-    const testContent = 'Hello\rWorld\nTest';
+  test("should render text from file and output to stdout", async () => {
+    const testContent = "Hello\rWorld\nTest";
     await writeFile(testFile, testContent);
 
     const result = await runCLI([testFile]);
 
-    expect(result.stdout.trim()).toBe('World\nTest');
+    expect(result.stdout.trim()).toBe("World\nTest");
     expect(result.exitCode).toBe(0);
   });
 
-  test('should render text from file and save to output file', async () => {
-    const testContent = 'Hello\rWorld\nTest';
+  test("should render text from file and save to output file", async () => {
+    const testContent = "Hello\rWorld\nTest";
     await writeFile(testFile, testContent);
 
-    const result = await runCLI([testFile, '-o', outputFile]);
+    const result = await runCLI([testFile, "-o", outputFile]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`Rendered output saved to: ${outputFile}`);
 
-    const outputContent = await readFile(outputFile, 'utf8');
-    expect(outputContent).toBe('World\nTest');
+    const outputContent = await readFile(outputFile, "utf8");
+    expect(outputContent).toBe("World\nTest");
   });
 
-  test('should handle ANSI escape sequences', async () => {
-    const testContent = '\x1b[2KHello\x1b[1AWorld';
+  test("should handle ANSI escape sequences", async () => {
+    const testContent = "\x1b[2KHello\x1b[1AWorld";
     await writeFile(testFile, testContent);
 
     const result = await runCLI([testFile]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout.trim()).toBe('HelloWorld');
+    expect(result.stdout.trim()).toBe("HelloWorld");
   });
 
   test('should read from stdin when file is "-"', async () => {
-    const testInput = 'Hello\rWorld';
+    const testInput = "Hello\rWorld";
 
-    const result = await runCLI(['-'], testInput);
+    const result = await runCLI(["-"], testInput);
 
-    expect(result.stdout.trim()).toBe('World');
+    expect(result.stdout.trim()).toBe("World");
     expect(result.exitCode).toBe(0);
   });
 
-  test('should read from stdin by default', async () => {
-    const testInput = 'Hello\rWorld';
+  test("should read from stdin by default", async () => {
+    const testInput = "Hello\rWorld";
 
     const result = await runCLI([], testInput);
 
-    expect(result.stdout.trim()).toBe('World');
+    expect(result.stdout.trim()).toBe("World");
     expect(result.exitCode).toBe(0);
   });
 
-  test('should display help when --help is used', async () => {
-    const result = await runCLI(['--help']);
+  test("should display help when --help is used", async () => {
+    const result = await runCLI(["--help"]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain(
-      'Render terminal text from a file or stdin'
-    );
-    expect(result.stdout).toContain('--output');
-    expect(result.stdout).toContain('Examples:');
+    expect(result.stdout).toContain("Render terminal text from a file or stdin");
+    expect(result.stdout).toContain("--output");
+    expect(result.stdout).toContain("Examples:");
   });
 
-  test('should handle empty input', async () => {
-    await writeFile(testFile, '');
+  test("should handle empty input", async () => {
+    await writeFile(testFile, "");
 
     const result = await runCLI([testFile]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout.trim()).toBe('');
+    expect(result.stdout.trim()).toBe("");
   });
 
-  test('should handle file not found error', async () => {
-    const nonExistentFile = join(testDir, 'non-existent.txt');
+  test("should handle file not found error", async () => {
+    const nonExistentFile = join(testDir, "non-existent.txt");
 
     const result = await runCLI([nonExistentFile]);
 
     expect(result.exitCode).not.toBe(0);
-    expect(result.stderr).toContain('ENOENT');
+    expect(result.stderr).toContain("ENOENT");
   });
 
-  test('should handle complex terminal control sequences', async () => {
-    const testContent = 'Line 1\nLine 2\x1b[1A\x1b[KReplaced';
+  test("should handle complex terminal control sequences", async () => {
+    const testContent = "Line 1\nLine 2\x1b[1A\x1b[KReplaced";
     await writeFile(testFile, testContent);
 
     const result = await runCLI([testFile]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout.trim()).toBe('Line 1Replaced\nLine 2');
+    expect(result.stdout.trim()).toBe("Line 1Replaced\nLine 2");
   });
 });
 
 // Helper function to run CLI command
 function runCLI(
   args: string[],
-  input?: string
+  input?: string,
 ): Promise<{
   stdout: string;
   stderr: string;
   exitCode: number;
 }> {
   return new Promise((resolve) => {
-    const child = spawn('bun', [CLI_PATH, ...args], {
-      stdio: ['pipe', 'pipe', 'pipe'],
+    const child = spawn("bun", [CLI_PATH, ...args], {
+      stdio: ["pipe", "pipe", "pipe"],
     });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
 
     if (child.stdout) {
-      child.stdout.on('data', (data) => {
+      child.stdout.on("data", (data) => {
         stdout += data.toString();
       });
     }
 
     if (child.stderr) {
-      child.stderr.on('data', (data) => {
+      child.stderr.on("data", (data) => {
         stderr += data.toString();
       });
     }
 
-    child.on('close', (code) => {
+    child.on("close", (code) => {
       resolve({
         stdout,
         stderr,
