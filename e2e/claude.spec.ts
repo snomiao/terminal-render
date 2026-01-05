@@ -2,7 +2,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import { TerminalTextRender } from '../index';
 
-it('works', async () => {
+it('still works on claude', async () => {
   const input = await readFile('./e2e/claude-out.txt', 'utf8');
 
   const out = new TerminalTextRender().write(input).render();
