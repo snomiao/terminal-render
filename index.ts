@@ -436,6 +436,41 @@ export class TerminalTextRender {
     return trimmedLines.join("\n");
   }
 
+  /**
+   * Renders the last n lines and returns an n-line string
+   * @param n The number of lines to return from the end
+   * @returns A string containing the last n lines joined with newlines
+   * @example
+   * ```ts
+   * const renderer = new TerminalTextRender();
+   * renderer.write("line 1\nline 2\nline 3\nline 4\nline 5\n");
+   * console.log(renderer.tail(10));
+   * // Output: "line 1\nline 2\nline 3\nline 4\nline 5"
+   * ```
+   */
+  tail(n: number): string {
+    // Combine scrollback and current lines
+    const allLines = [...this.scrollback, ...this.lines];
+
+    // Remove trailing empty lines (similar to render())
+    const trimmedLines = [...allLines];
+    while (trimmedLines.length > 1 && trimmedLines[trimmedLines.length - 1] === "") {
+      if (this.shouldPreserveTrailingNewline(trimmedLines)) {
+        // Preserve a single trailing newline if the last meaningful output ended with \n
+        if (trimmedLines.length > 2 && trimmedLines[trimmedLines.length - 2] === "") {
+          trimmedLines.pop();
+          continue;
+        }
+        break;
+      }
+      trimmedLines.pop();
+    }
+
+    // Get the last n lines
+    const lastNLines = trimmedLines.slice(-n);
+    return lastNLines.join("\n");
+  }
+
   private shouldPreserveTrailingNewline(lines: string[]): boolean {
     if (!this.endedWithNewline) {
       return false;

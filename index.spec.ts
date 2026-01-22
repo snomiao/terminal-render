@@ -513,4 +513,46 @@ describe("TerminalTextRender", () => {
       expect(result.split("\n")).toHaveLength(100);
     });
   });
+
+  describe("tail method", () => {
+    test("should return last n lines", () => {
+      renderer.write("line 1\nline 2\nline 3\nline 4\nline 5\n");
+      expect(renderer.tail(10)).toBe("line 1\nline 2\nline 3\nline 4\nline 5");
+    });
+
+    test("should return last 3 lines", () => {
+      renderer.write("line 1\nline 2\nline 3\nline 4\nline 5\n");
+      expect(renderer.tail(3)).toBe("line 3\nline 4\nline 5");
+    });
+
+    test("should return last 1 line", () => {
+      renderer.write("line 1\nline 2\nline 3\n");
+      expect(renderer.tail(1)).toBe("line 3");
+    });
+
+    test("should handle request for more lines than exist", () => {
+      renderer.write("line 1\nline 2\n");
+      expect(renderer.tail(100)).toBe("line 1\nline 2");
+    });
+
+    test("should handle empty content", () => {
+      expect(renderer.tail(10)).toBe("");
+    });
+
+    test("should handle single line without newline", () => {
+      renderer.write("single line");
+      expect(renderer.tail(5)).toBe("single line");
+    });
+
+    test("should work with scrollback lines", () => {
+      // Write many lines to trigger scrollback
+      for (let i = 1; i <= 100; i++) {
+        renderer.write(`line ${i}\n`);
+      }
+      const result = renderer.tail(5);
+      expect(result).toContain("line 96");
+      expect(result).toContain("line 100");
+      expect(result.split("\n")).toHaveLength(5);
+    });
+  });
 });
