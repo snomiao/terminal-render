@@ -1,4 +1,5 @@
-import { TerminalRenderStream, TerminalTextRender } from "./index";
+import { TerminalRenderStream } from "./terminal-render-stream";
+import { TerminalTextRender } from "./index";
 
 describe("TerminalRenderStream (raw mode — default)", () => {
   test("should pass through raw data on pull", async () => {
@@ -129,6 +130,25 @@ describe("TerminalRenderStream (diff mode)", () => {
     reader.releaseLock();
   });
 
+  test("should emit only the new suffix for mid-line PTY appends", async () => {
+    // Simulates PTY output arriving in chunks without newlines (common in real terminals)
+    const stream = new TerminalRenderStream({ mode: "diff" });
+    const writer = stream.writable.getWriter();
+    const reader = stream.readable.getReader();
+
+    await writer.write("Hello");
+    const r1 = await reader.read();
+    expect(r1.value).toBe("Hello");
+
+    // Second chunk appends to the same line — should NOT re-emit "Hello"
+    await writer.write(" World");
+    const r2 = await reader.read();
+    expect(r2.value).toBe(" World");
+
+    await writer.close();
+    reader.releaseLock();
+  });
+
   test("should handle in-place overwrites via carriage return", async () => {
     const stream = new TerminalRenderStream({ mode: "diff" });
     const writer = stream.writable.getWriter();
@@ -190,8 +210,8 @@ describe("TerminalRenderStream (diff mode)", () => {
 
     await writer.write("content");
     const { value } = await reader.read();
-    // The changed line is emitted (pre-existing line was modified by appending "content")
-    expect(value).toBe("pre-existing content");
+    // Only the new suffix is emitted — the pre-existing state was already snapshotted
+    expect(value).toBe("content");
 
     expect(stream.getRenderer()).toBe(renderer);
     expect(renderer.render()).toBe("pre-existing content");
