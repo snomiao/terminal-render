@@ -36,7 +36,7 @@
     "build": "tsdown",
     "dev": "bun index.ts",
     "fmt": "bunx oxlint --fix && bunx oxfmt",
-    "prepare": "husky || true && bun run build:index"
+    "prepare": "husky || true && bun run build"
   },
   "dependencies": {
     "from-node-stream": "^0.1.0",
