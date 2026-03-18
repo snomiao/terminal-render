@@ -37,7 +37,7 @@
     "build:cli": "bun build cli.ts --outdir=dist --target=node",
     "dev": "bun index.ts",
     "fmt": "bunx oxlint --fix && bunx oxfmt",
-    "prepare": "husky"
+    "prepare": "husky || true && bun run build:index"
   },
   "dependencies": {
     "from-node-stream": "^0.1.0",

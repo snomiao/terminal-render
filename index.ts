@@ -9,6 +9,149 @@ export function createTerminalLogManager(): TerminalTextRender {
   return new TerminalTextRender();
 }
 
+/**
+ * A TransformStream that eagerly consumes all terminal input (never exerts backpressure)
+ * and buffers data for downstream consumption.
+ *
+ * - `.writable` — feed raw PTY data here; writes resolve immediately
+ * - `.readable` — read output when downstream pulls
+ *
+ * Two output modes:
+ * - `"raw"` (default) — passes through raw PTY data, coalesced when downstream is slow.
+ *   The renderer is updated eagerly as a side effect for querying via `getRenderer()`.
+ * - `"diff"` — emits only the rendered text diff since the last pull.
+ *   Useful when downstream only needs to see what changed on screen.
+ *
+ * This decouples fast producers (PTY) from slow consumers (pattern matching, file I/O)
+ * so the child process never blocks on a full pipe buffer.
+ */
+export class TerminalRenderStream {
+  readonly readable: ReadableStream<string>;
+  readonly writable: WritableStream<string>;
+  private renderer: TerminalTextRender;
+  private mode: "raw" | "diff";
+  private lastSnapshot = "";
+  private pendingRaw: string[] = [];
+  private pullResolve: (() => void) | null = null;
+  private closed = false;
+
+  constructor(opts?: { renderer?: TerminalTextRender; mode?: "raw" | "diff" }) {
+    this.renderer = opts?.renderer ?? new TerminalTextRender();
+    this.mode = opts?.mode ?? "raw";
+    // Initialize snapshot from existing renderer state so first diff-pull only emits new content
+    this.lastSnapshot = this.renderer.render();
+
+    this.readable = new ReadableStream<string>({
+      pull: (controller) => {
+        const output = this.drainOutput();
+
+        if (output) {
+          controller.enqueue(output);
+          return;
+        }
+
+        if (this.closed) {
+          controller.close();
+          return;
+        }
+
+        // No new content yet — wait until data arrives
+        return new Promise<void>((resolve) => {
+          this.pullResolve = resolve;
+        });
+      },
+      cancel: () => {
+        this.closed = true;
+        this.pullResolve?.();
+        this.pullResolve = null;
+      },
+    });
+
+    this.writable = new WritableStream<string>({
+      write: (chunk) => {
+        // Always feed renderer eagerly so it's always up-to-date
+        this.renderer.write(chunk);
+        this.pendingRaw.push(chunk);
+        // Wake up any pending pull
+        if (this.pullResolve) {
+          const resolve = this.pullResolve;
+          this.pullResolve = null;
+          resolve();
+        }
+      },
+      close: () => {
+        this.closed = true;
+        if (this.pullResolve) {
+          const resolve = this.pullResolve;
+          this.pullResolve = null;
+          resolve();
+        }
+      },
+      abort: () => {
+        this.closed = true;
+        if (this.pullResolve) {
+          const resolve = this.pullResolve;
+          this.pullResolve = null;
+          resolve();
+        }
+      },
+    });
+  }
+
+  /** Access the underlying renderer for tail(), getCursorPosition(), etc. */
+  getRenderer(): TerminalTextRender {
+    return this.renderer;
+  }
+
+  /** Drain buffered output based on mode. Returns null if nothing to emit. */
+  private drainOutput(): string | null {
+    if (this.mode === "raw") {
+      if (this.pendingRaw.length === 0) return null;
+      const data = this.pendingRaw.join("");
+      this.pendingRaw.length = 0;
+      return data;
+    }
+
+    // diff mode: emit rendered text diff
+    this.pendingRaw.length = 0; // discard raw, we only emit diffs
+    const current = this.renderer.render();
+    if (current === this.lastSnapshot) return null;
+    const diff = this.computeDiff(this.lastSnapshot, current);
+    this.lastSnapshot = current;
+    return diff || null;
+  }
+
+  /**
+   * Compute the diff between old and new rendered output.
+   * Returns only the new/changed lines at the tail.
+   *
+   * Strategy: find the longest common prefix of lines, then emit everything after.
+   * This handles the common case of appended output efficiently.
+   * For in-place updates (cursor repositioning), emits the full new render.
+   */
+  private computeDiff(oldText: string, newText: string): string {
+    if (!oldText) return newText;
+
+    const oldLines = oldText.split("\n");
+    const newLines = newText.split("\n");
+
+    // Find how many lines from the start are identical
+    let commonPrefix = 0;
+    const minLen = Math.min(oldLines.length, newLines.length);
+    while (commonPrefix < minLen && oldLines[commonPrefix] === newLines[commonPrefix]) {
+      commonPrefix++;
+    }
+
+    // If all old lines match the start of new lines, emit only the new tail
+    if (commonPrefix === oldLines.length) {
+      return newLines.slice(commonPrefix).join("\n");
+    }
+
+    // Lines were modified (in-place update) — emit from the first changed line
+    return newLines.slice(commonPrefix).join("\n");
+  }
+}
+
 // Terminal Log Manager to handle terminal control characters
 export class TerminalTextRender {
   private lines: string[] = [""];
