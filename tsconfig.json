@@ -16,7 +16,8 @@
     "removeComments": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["bun", "jest", "node"]
   },
   "include": ["*.ts", "**/*.ts"],
   "exclude": ["node_modules", "dist"]
