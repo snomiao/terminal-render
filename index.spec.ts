@@ -151,7 +151,7 @@ describe("TerminalTextRender", () => {
       renderer.write(" World\nNext line");
       renderer.write(ansiEscapes.cursorRestorePosition);
       renderer.write("!");
-      expect(renderer.render()).toBe("Hello! World\nNext line");
+      expect(renderer.render()).toBe("Hello!World\nNext line");
     });
 
     test("should handle cursorNextLine", () => {
@@ -273,7 +273,7 @@ describe("TerminalTextRender", () => {
       renderer.write(ansiEscapes.cursorUp(2));
       renderer.write(ansiEscapes.eraseUp);
       // eraseUp (\x1b[1J) clears from start of display to cursor position
-      expect(renderer.render()).toBe("\n\nLine 3\nLine 4");
+      expect(renderer.render()).toBe("\n       \nLine 3\nLine 4");
 
       // Reset and test eraseDown
       renderer.clear();
