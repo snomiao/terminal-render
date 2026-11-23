@@ -6,7 +6,6 @@ export class TerminalTextRender {
   private cursorCol = 0;
   private savedCursorRow = 0;
   private savedCursorCol = 0;
-  private isAtRestoredPosition = false;
   private scrollTop = 0;
   private scrollBottom: number | null = null;
   private endedWithNewline = false;
@@ -58,6 +57,23 @@ export class TerminalTextRender {
             // Check for complex sequences like eraseLines first
             if (this.isEraseSequence(data, i)) {
               i = this.handleEraseSequence(data, i) - 1; // -1 because loop will increment
+            } else if (i + 1 < data.length && data[i + 1] === "7") {
+              this.savedCursorRow = this.cursorRow;
+              this.savedCursorCol = this.cursorCol;
+              i++;
+            } else if (i + 1 < data.length && data[i + 1] === "8") {
+              this.cursorRow = this.savedCursorRow;
+              this.cursorCol = this.savedCursorCol;
+              this.ensureLine(this.cursorRow);
+              i++;
+            } else if (
+              i + 2 < data.length &&
+              "()*+".includes(data[i + 1]) &&
+              /[\x30-\x7e]/.test(data[i + 2])
+            ) {
+              // Consume a character-set designation (for example ESC ( B).
+              // Character-set translation is outside this plain-text renderer.
+              i += 2;
             } else if (i + 1 < data.length && data[i + 1] === "M") {
               // ESC M - Reverse Index (cursor up, scroll down at top margin)
               if (this.cursorRow > this.scrollTop) {
@@ -149,12 +165,7 @@ export class TerminalTextRender {
             this.ensureLine(this.cursorRow);
             const line = this.lines[this.cursorRow];
 
-            // Special case: if at restored position and within existing text, insert instead of overwrite
-            if (this.isAtRestoredPosition && this.cursorCol < line.length) {
-              this.lines[this.cursorRow] =
-                line.substring(0, this.cursorCol) + char + line.substring(this.cursorCol);
-              this.isAtRestoredPosition = false;
-            } else if (this.cursorCol >= line.length) {
+            if (this.cursorCol >= line.length) {
               // Extend line if cursor is beyond current length
               this.lines[this.cursorRow] = line + " ".repeat(this.cursorCol - line.length) + char;
             } else {
@@ -271,7 +282,6 @@ export class TerminalTextRender {
         const parts = escapeCode.split(";");
         this.cursorRow = Math.max(0, (parseInt(parts[0]) || 1) - 1);
         this.cursorCol = Math.max(0, (parseInt(parts[1]) || 1) - 1);
-        this.isAtRestoredPosition = false; // Reset flag for explicit positioning
         this.ensureLine(this.cursorRow);
         break;
       }
@@ -297,7 +307,9 @@ export class TerminalTextRender {
           for (let row = 0; row < this.cursorRow; row++) {
             this.lines[row] = "";
           }
-          this.lines[this.cursorRow] = this.lines[this.cursorRow].substring(this.cursorCol);
+          this.lines[this.cursorRow] =
+            " ".repeat(this.cursorCol + 1) +
+            this.lines[this.cursorRow].substring(this.cursorCol + 1);
         }
         break;
 
@@ -310,7 +322,8 @@ export class TerminalTextRender {
           // Clear from beginning of line to cursor
           this.ensureLine(this.cursorRow);
           this.lines[this.cursorRow] =
-            " ".repeat(this.cursorCol) + this.lines[this.cursorRow].substring(this.cursorCol);
+            " ".repeat(this.cursorCol + 1) +
+            this.lines[this.cursorRow].substring(this.cursorCol + 1);
         } else if (escapeCode === "2") {
           // Clear entire line
           this.ensureLine(this.cursorRow);
@@ -337,7 +350,6 @@ export class TerminalTextRender {
         if (escapeCode === "") {
           this.cursorRow = this.savedCursorRow;
           this.cursorCol = this.savedCursorCol;
-          this.isAtRestoredPosition = true;
           this.ensureLine(this.cursorRow);
         }
         break;
